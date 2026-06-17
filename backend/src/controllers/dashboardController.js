@@ -148,10 +148,10 @@ const getTopClientes = async (req, res, next) => {
     const [rows] = await pool.execute(
       `SELECT p.nombre, COUNT(v.id) as total_compras, COALESCE(SUM(v.total), 0) as total_monto
        FROM tt_ventas v
-       LEFT JOIN tt_personas p ON v.cliente_id = p.id
+       LEFT JOIN tt_personas p ON v.persona_id = p.id
        ${where}
-       AND v.cliente_id IS NOT NULL
-       GROUP BY v.cliente_id
+       AND v.persona_id IS NOT NULL
+       GROUP BY v.persona_id
        ORDER BY total_monto DESC
        LIMIT ${parseInt(limit)}`,
       params
