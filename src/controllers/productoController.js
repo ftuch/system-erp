@@ -21,8 +21,8 @@ const getAll = async (req, res, next) => {
       whereClause += ' AND p.tipo = ?';
       params.push(tipo);
     }
-    if (estado !== undefined) {
-      whereClause += ' AND p.estado = ?';
+    if (estado !== undefined && estado !== '') {
+      whereClause += ' AND p.activo = ?';
       params.push(estado);
     }
 
@@ -39,7 +39,10 @@ const getAll = async (req, res, next) => {
 
 
     const [rows] = await pool.execute(
-      `SELECT p.*, c.nombre as categoria_nombre,
+      `SELECT p.id, p.nombre, p.tipo, p.categoria_id, p.codigo_barras, p.unidad,
+              p.precio, p.costo, p.requiere_receta,
+              p.activo as estado, p.activo,
+              c.nombre as categoria_nombre,
               COALESCE(SUM(e.stock_actual), 0) as stock_total,
               COALESCE(MIN(e.stock_minimo), 0) as stock_minimo,
               COALESCE(MAX(e.stock_maximo), 0) as stock_maximo
