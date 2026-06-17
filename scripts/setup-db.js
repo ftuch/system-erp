@@ -109,6 +109,11 @@ async function setup() {
   await conn.execute(`CREATE TABLE IF NOT EXISTS tt_venta_detalle (id int NOT NULL AUTO_INCREMENT, venta_id int DEFAULT NULL, producto_id int DEFAULT NULL, cantidad int DEFAULT NULL, precio decimal(10,2) DEFAULT NULL, subtotal decimal(10,2) DEFAULT NULL, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
   await conn.execute(`CREATE TABLE IF NOT EXISTS tt_ventas (id int NOT NULL AUTO_INCREMENT, persona_id int DEFAULT NULL, usuario_id int DEFAULT NULL, sucursal_id int DEFAULT NULL, tipo enum('tienda','farmacia','clinica') DEFAULT NULL, total decimal(10,2) DEFAULT NULL, estado enum('pendiente','pagado','anulado') DEFAULT 'pendiente', fecha timestamp NULL DEFAULT CURRENT_TIMESTAMP, correlativo varchar(50) DEFAULT NULL, caja_id int DEFAULT NULL, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
 
+  // Agregar columnas faltantes
+  try { await conn.execute(`ALTER TABLE tt_usuarios ADD COLUMN estado tinyint(1) DEFAULT 1`); } catch(e) {}
+  await conn.execute(`UPDATE tt_usuarios SET estado=1 WHERE estado IS NULL`);
+  try { await conn.execute(`ALTER TABLE tt_productos ADD COLUMN estado tinyint(1) DEFAULT 1`); } catch(e) {}
+
   const [tables] = await conn.execute('SHOW TABLES');
   console.log(`✅ ${tables.length} tablas creadas exitosamente`);
   await conn.end();
