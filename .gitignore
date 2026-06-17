@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.*
+logs/
+*.log
+fix-*.js
+test-*.js
+migrate-*.js
+seed-*.js
+check-*.js
