@@ -42,7 +42,7 @@ async function setup() {
   await conn.execute(`
     CREATE TABLE IF NOT EXISTS tc_pedidos_config (id int NOT NULL AUTO_INCREMENT, requiere_aprobacion tinyint(1) DEFAULT 1, permite_parcial tinyint(1) DEFAULT 1, permite_bonificacion tinyint(1) DEFAULT 1, flujo varchar(50) DEFAULT 'despacho', created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP, updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, activo tinyint(1) DEFAULT 1, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
-  await conn.execute(`INSERT IGNORE INTO tc_pedidos_config VALUES (1,1,1,1,'despacho',NULL,NULL,1);`);
+  await conn.execute(`INSERT IGNORE INTO tc_pedidos_config (id,requiere_revision,requiere_despacho,descuenta_inventario,descuenta_en,permite_despacho_parcial) VALUES (1,1,1,1,'despacho',1);`);
 
   await conn.execute(`
     CREATE TABLE IF NOT EXISTS tc_series_documentos (id int NOT NULL AUTO_INCREMENT, sucursal_id int DEFAULT NULL, tipo_documento varchar(50) DEFAULT NULL, serie varchar(20) DEFAULT NULL, ultimo_numero int DEFAULT 0, activo tinyint(1) DEFAULT 1, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -51,7 +51,7 @@ async function setup() {
   await conn.execute(`
     CREATE TABLE IF NOT EXISTS tc_sucursales (id int NOT NULL AUTO_INCREMENT, nombre varchar(100) NOT NULL, direccion varchar(200) DEFAULT NULL, telefono varchar(20) DEFAULT NULL, activo tinyint(1) DEFAULT 1, created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
-  await conn.execute(`INSERT IGNORE INTO tc_sucursales VALUES (1,'Central','Dirección Principal','00000000',1,NOW());`);
+  await conn.execute(`INSERT IGNORE INTO tc_sucursales (id,nombre,direccion,telefono,activo) VALUES (1,'Central','Dirección Principal','00000000',1);`);
 
   await conn.execute(`
     CREATE TABLE IF NOT EXISTS ts_roles (id int NOT NULL AUTO_INCREMENT, nombre varchar(100) NOT NULL, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -72,12 +72,12 @@ async function setup() {
   await conn.execute(`
     CREATE TABLE IF NOT EXISTS tt_bodegas (id int NOT NULL AUTO_INCREMENT, sucursal_id int DEFAULT NULL, nombre varchar(100) NOT NULL, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
-  await conn.execute(`INSERT IGNORE INTO tt_bodegas VALUES (1,1,'Bodega Principal');`);
+  await conn.execute(`INSERT IGNORE INTO tt_bodegas (id,sucursal_id,nombre) VALUES (1,1,'Bodega Principal');`);
 
   await conn.execute(`
     CREATE TABLE IF NOT EXISTS tt_cajas (id int NOT NULL AUTO_INCREMENT, sucursal_id int DEFAULT NULL, nombre varchar(100) NOT NULL, estado enum('abierta','cerrada') DEFAULT 'cerrada', saldo_inicial decimal(10,2) DEFAULT 0.00, saldo_actual decimal(10,2) DEFAULT 0.00, usuario_apertura int DEFAULT NULL, fecha_apertura timestamp NULL DEFAULT NULL, usuario_cierre int DEFAULT NULL, fecha_cierre timestamp NULL DEFAULT NULL, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
-  await conn.execute(`INSERT IGNORE INTO tt_cajas VALUES (1,1,'Caja 1','cerrada',0.00,0.00,NULL,NULL,NULL,NULL);`);
+  await conn.execute(`INSERT IGNORE INTO tt_cajas (id,sucursal_id,nombre,estado,saldo_inicial,saldo_actual) VALUES (1,1,'Caja 1','cerrada',0.00,0.00);`);
 
   await conn.execute(`CREATE TABLE IF NOT EXISTS tt_arqueos_caja (id int NOT NULL AUTO_INCREMENT, caja_id int DEFAULT NULL, usuario_id int DEFAULT NULL, tipo enum('apertura','cierre') DEFAULT NULL, monto_declarado decimal(10,2) DEFAULT NULL, monto_sistema decimal(10,2) DEFAULT NULL, diferencia decimal(10,2) DEFAULT NULL, observaciones text, fecha timestamp NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
   await conn.execute(`CREATE TABLE IF NOT EXISTS tt_compra_detalle (id int NOT NULL AUTO_INCREMENT, compra_id int DEFAULT NULL, producto_id int DEFAULT NULL, cantidad int DEFAULT NULL, precio decimal(10,2) DEFAULT NULL, subtotal decimal(10,2) DEFAULT NULL, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
@@ -94,7 +94,7 @@ async function setup() {
   await conn.execute(`
     CREATE TABLE IF NOT EXISTS tt_personas (id int NOT NULL AUTO_INCREMENT, nombre varchar(150) NOT NULL, nit varchar(20) DEFAULT NULL, telefono varchar(20) DEFAULT NULL, direccion varchar(200) DEFAULT NULL, tipo enum('cliente','proveedor','empleado','paciente','medico') DEFAULT 'cliente', email varchar(100) DEFAULT NULL, created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
-  await conn.execute(`INSERT IGNORE INTO tt_personas VALUES (1,'Consumidor Final','CF',NULL,NULL,'cliente',NULL,NOW());`);
+  await conn.execute(`INSERT IGNORE INTO tt_personas (id,nombre,nit,tipo) VALUES (1,'Consumidor Final','CF','cliente');`);
 
   await conn.execute(`CREATE TABLE IF NOT EXISTS tt_productos (id int NOT NULL AUTO_INCREMENT, nombre varchar(150) NOT NULL, tipo enum('producto','servicio','medicamento') DEFAULT 'producto', categoria_id int DEFAULT NULL, codigo_barras varchar(100) DEFAULT NULL, unidad varchar(50) DEFAULT NULL, precio decimal(10,2) DEFAULT 0.00, costo decimal(10,2) DEFAULT 0.00, requiere_receta tinyint(1) DEFAULT 0, activo tinyint(1) DEFAULT 1, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
   await conn.execute(`CREATE TABLE IF NOT EXISTS tt_proveedores (id int NOT NULL AUTO_INCREMENT, nombre varchar(150) NOT NULL, nit varchar(20) DEFAULT NULL, telefono varchar(20) DEFAULT NULL, email varchar(100) DEFAULT NULL, direccion varchar(200) DEFAULT NULL, contacto varchar(100) DEFAULT NULL, activo tinyint(1) DEFAULT 1, created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
@@ -104,7 +104,7 @@ async function setup() {
   await conn.execute(`
     CREATE TABLE IF NOT EXISTS tt_usuarios (id int NOT NULL AUTO_INCREMENT, nombre varchar(150) NOT NULL, usuario varchar(100) NOT NULL, password varchar(255) NOT NULL, rol_id int DEFAULT NULL, sucursal_id int DEFAULT NULL, activo tinyint(1) DEFAULT 1, created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (id), UNIQUE KEY usuario (usuario)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
-  await conn.execute(`INSERT IGNORE INTO tt_usuarios VALUES (1,'Administrador','admin','$2a$10$mUmwKR73xXTvJHbkDcUdEesLEhunDOA.3.CazPXYZA3mwcLqKsufO',1,1,1,NOW());`);
+  await conn.execute(`INSERT IGNORE INTO tt_usuarios (id,nombre,usuario,password,rol_id,sucursal_id,activo) VALUES (1,'Administrador','admin','$2a$10$mUmwKR73xXTvJHbkDcUdEesLEhunDOA.3.CazPXYZA3mwcLqKsufO',1,1,1);`);
 
   await conn.execute(`CREATE TABLE IF NOT EXISTS tt_venta_detalle (id int NOT NULL AUTO_INCREMENT, venta_id int DEFAULT NULL, producto_id int DEFAULT NULL, cantidad int DEFAULT NULL, precio decimal(10,2) DEFAULT NULL, subtotal decimal(10,2) DEFAULT NULL, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
   await conn.execute(`CREATE TABLE IF NOT EXISTS tt_ventas (id int NOT NULL AUTO_INCREMENT, persona_id int DEFAULT NULL, usuario_id int DEFAULT NULL, sucursal_id int DEFAULT NULL, tipo enum('tienda','farmacia','clinica') DEFAULT NULL, total decimal(10,2) DEFAULT NULL, estado enum('pendiente','pagado','anulado') DEFAULT 'pendiente', fecha timestamp NULL DEFAULT CURRENT_TIMESTAMP, correlativo varchar(50) DEFAULT NULL, caja_id int DEFAULT NULL, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
