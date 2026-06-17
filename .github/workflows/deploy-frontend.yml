@@ -25,6 +25,12 @@ jobs:
         run: npm ci
         working-directory: frontend
 
+      - name: Update build version
+        run: |
+          BUILD_DATE=$(date -u '+%Y-%m-%d %H:%M UTC')
+          sed -i "s|export const BUILD_DATE = '.*';|export const BUILD_DATE = '${BUILD_DATE}';|" src/environments/version.ts
+        working-directory: frontend
+
       - name: Build Angular
         run: npm run build -- --configuration production --base-href /erp/
         working-directory: frontend

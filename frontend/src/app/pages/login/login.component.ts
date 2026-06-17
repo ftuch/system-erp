@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { APP_VERSION, BUILD_DATE } from '../../../environments/version';
 
 @Component({
   selector: 'app-login',
@@ -117,6 +118,7 @@ import { AuthService } from '../../services/auth.service';
         <span class="material-icons">shield</span>
         Conexión segura
       </div>
+      <div class="lc-version">v{{ version }} · {{ buildDate }}</div>
     </div>
   </div>
 
@@ -309,6 +311,7 @@ import { AuthService } from '../../services/auth.service';
       font-size: 12px; color: var(--text-disabled);
     }
     .lc-footer .material-icons { font-size: 14px; color: var(--success); }
+    .lc-version { text-align: center; margin-top: 8px; font-size: 11px; color: var(--text-disabled); opacity: .6; }
 
     /* Animación spinner */
     .spin { animation: spin 1s linear infinite; }
@@ -329,6 +332,8 @@ export class LoginComponent {
   errorMsg = '';
   userFocused = false;
   passFocused = false;
+  version = APP_VERSION;
+  buildDate = BUILD_DATE;
 
   constructor(
     private fb: FormBuilder,
