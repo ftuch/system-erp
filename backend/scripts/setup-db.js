@@ -128,6 +128,20 @@ async function setup() {
   try { await conn.execute(`ALTER TABLE tt_cajas ADD COLUMN monto_cierre decimal(10,2) DEFAULT NULL`); } catch(e) {}
   try { await conn.execute(`ALTER TABLE tt_arqueos_caja ADD COLUMN tipo varchar(20) DEFAULT 'arqueo'`); } catch(e) {}
 
+  // Migración 002: Reorganizar menú — Sucursales, Usuarios, Roles bajo Configuración
+  await conn.execute(`UPDATE tc_menus SET padre_id=37, orden=1 WHERE id=31`); // Sucursales
+  await conn.execute(`UPDATE tc_menus SET padre_id=37, orden=2 WHERE id=38`); // Usuarios
+  await conn.execute(`UPDATE tc_menus SET padre_id=37, orden=3 WHERE id=39`); // Roles
+  await conn.execute(`UPDATE tc_menus SET padre_id=37, orden=4 WHERE id=50`); // Flujo Pedidos
+  await conn.execute(`UPDATE tc_menus SET orden=1 WHERE id=1`);   // Dashboard
+  await conn.execute(`UPDATE tc_menus SET orden=2 WHERE id=52`);  // Ventas
+  await conn.execute(`UPDATE tc_menus SET orden=3 WHERE id=46`);  // Caja
+  await conn.execute(`UPDATE tc_menus SET orden=4 WHERE id=49`);  // Pedidos
+  await conn.execute(`UPDATE tc_menus SET orden=5 WHERE id=42`);  // Clientes
+  await conn.execute(`UPDATE tc_menus SET orden=6 WHERE id=43`);  // Proveedores
+  await conn.execute(`UPDATE tc_menus SET orden=7 WHERE id=6`);   // Inventario
+  await conn.execute(`UPDATE tc_menus SET orden=8 WHERE id=37`);  // Configuración
+
   const [tables] = await conn.execute('SHOW TABLES');
   console.log(`✅ ${tables.length} tablas creadas exitosamente`);
   await conn.end();
