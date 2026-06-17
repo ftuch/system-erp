@@ -29,7 +29,7 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
             <a class="caja-indicator" routerLink="/caja"
                [ngClass]="hayCaja ? 'caja-open' : 'caja-closed'">
               <span class="material-icons">account_balance_wallet</span>
-              <span>{{ hayCaja ? 'Caja abierta' : 'Sin caja' }}</span>
+              <span>{{ hayCaja ? 'Caja abierta' : 'Caja Cerrada' }}</span>
             </a>
             <span class="header-user" *ngIf="currentUser">
               <span class="material-icons" style="font-size:18px; color: var(--text-secondary)">person</span>

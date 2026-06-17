@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
+import { CajaService } from '../../services/caja.service';
 
 interface LineItem {
   producto_id: number;
@@ -20,7 +22,20 @@ interface Pago {
 @Component({
   selector: 'app-ventas',
   template: `
-<div class="pos-root">
+<!-- Bloqueo si no hay caja abierta -->
+<div class="caja-cerrada-overlay" *ngIf="!cajaAbierta && !cargandoCaja">
+  <div class="cc-card">
+    <span class="material-icons cc-icon">lock</span>
+    <h2>Caja Cerrada</h2>
+    <p>No puedes realizar ventas sin una caja abierta.</p>
+    <p class="cc-sub">Abre una caja desde el módulo de <strong>Caja</strong> para comenzar a vender.</p>
+    <button class="cc-btn" (click)="irACaja()">
+      <span class="material-icons">account_balance_wallet</span> Ir a Caja
+    </button>
+  </div>
+</div>
+
+<div class="pos-root" *ngIf="cajaAbierta">
 
   <!-- ═══ COLUMNA IZQUIERDA: búsqueda + lista ═══ -->
   <div class="pos-left">
@@ -418,6 +433,16 @@ interface Pago {
     /* ── Columna derecha (PC siempre fija) ── */
     .pos-right { width: 340px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; background: var(--surface); border-left: 1px solid var(--border); padding: 16px; overflow-y: auto; }
 
+    /* Caja cerrada overlay */
+    .caja-cerrada-overlay { display: flex; align-items: center; justify-content: center; height: calc(100vh - var(--header-height, 64px)); background: var(--bg); }
+    .cc-card { text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 48px 40px; max-width: 400px; box-shadow: var(--shadow-lg); }
+    .cc-icon { font-size: 64px; color: var(--error); opacity: .7; }
+    .cc-card h2 { margin: 16px 0 8px; font-size: 24px; color: var(--text); }
+    .cc-card p { margin: 0 0 8px; font-size: 14px; color: var(--text-secondary); }
+    .cc-sub { font-size: 13px; color: var(--text-disabled); }
+    .cc-btn { margin-top: 20px; padding: 12px 24px; border: none; border-radius: var(--radius-md); background: var(--primary); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all var(--transition-fast); }
+    .cc-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
     /* ── Responsive: solo móvil/tablet real (<= 768px) ── */
     @media (max-width: 768px) {
       :host { height: auto; overflow: auto; }
@@ -499,11 +524,23 @@ export class VentasComponent implements OnInit, OnDestroy, AfterViewInit {
   private clienteSubject = new Subject<string>();
 
   cajaActiva: any = null;
+  cajaAbierta = false;
+  cargandoCaja = true;
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private cajaService: CajaService, private router: Router) {}
 
   ngOnInit(): void {
-    this.api.get<any>('/cajas/activa').subscribe({ next: r => { this.cajaActiva = r.data; } });
+    this.cajaService.verificarCajaActiva().subscribe({
+      next: r => {
+        this.cajaActiva = r.data;
+        this.cajaAbierta = !!r.data;
+        this.cargandoCaja = false;
+      },
+      error: () => {
+        this.cajaAbierta = false;
+        this.cargandoCaja = false;
+      }
+    });
     this.loadHistorial();
 
     this.searchSubject.pipe(debounceTime(250), distinctUntilChanged()).subscribe(term => {
@@ -721,6 +758,10 @@ export class VentasComponent implements OnInit, OnDestroy, AfterViewInit {
 
   verVenta(h: any): void {
     this.showToast(`Venta #${h.correlativo} — Q ${h.total}`);
+  }
+
+  irACaja(): void {
+    this.router.navigate(['/caja']);
   }
 
   private loadHistorial(): void {
