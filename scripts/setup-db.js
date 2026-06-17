@@ -113,6 +113,8 @@ async function setup() {
   try { await conn.execute(`ALTER TABLE tt_usuarios ADD COLUMN estado tinyint(1) DEFAULT 1`); } catch(e) {}
   await conn.execute(`UPDATE tt_usuarios SET estado=1 WHERE estado IS NULL`);
   try { await conn.execute(`ALTER TABLE tt_productos ADD COLUMN estado tinyint(1) DEFAULT 1`); } catch(e) {}
+  try { await conn.execute(`ALTER TABLE tt_movimientos_inventario ADD COLUMN motivo varchar(200) DEFAULT NULL`); } catch(e) {}
+  try { await conn.execute(`ALTER TABLE tt_movimientos_inventario ADD COLUMN referencia_tipo varchar(100) DEFAULT NULL`); } catch(e) {}
 
   const [tables] = await conn.execute('SHOW TABLES');
   console.log(`✅ ${tables.length} tablas creadas exitosamente`);

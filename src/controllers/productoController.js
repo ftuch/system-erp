@@ -44,7 +44,7 @@ const getAll = async (req, res, next) => {
               COALESCE(MIN(e.stock_minimo), 0) as stock_minimo,
               COALESCE(MAX(e.stock_maximo), 0) as stock_maximo
        FROM tt_productos p
-       LEFT JOIN tc_categorias c ON p.categoria_id = c.categorias_id
+       LEFT JOIN tc_categorias c ON p.categoria_id = c.id
        LEFT JOIN tt_existencias e ON p.id = e.producto_id
        ${whereClause}
        GROUP BY p.id
@@ -66,7 +66,7 @@ const getById = async (req, res, next) => {
     const [productos] = await pool.execute(
       `SELECT p.*, c.nombre as categoria_nombre
        FROM tt_productos p
-       LEFT JOIN tc_categorias c ON p.categoria_id = c.categorias_id
+       LEFT JOIN tc_categorias c ON p.categoria_id = c.id
        WHERE p.id = ?`,
       [id]
     );
@@ -124,8 +124,8 @@ const create = async (req, res, next) => {
           [productoId, bodegaResuelta, stock_inicial, stock_inicial]
         );
         await pool.execute(
-          `INSERT INTO tt_movimientos_inventario (producto_id, bodega_id, tipo, cantidad, motivo, referencia_tipo, usuario_id)
-           VALUES (?, ?, 'entrada', ?, 'Stock inicial', 'creacion_producto', ?)`,
+          `INSERT INTO tt_movimientos_inventario (producto_id, bodega_id, tipo, cantidad, observaciones, usuario_id)
+           VALUES (?, ?, 'entrada', ?, 'Stock inicial', ?)`,
           [productoId, bodegaResuelta, stock_inicial, req.user.id]
         );
       }

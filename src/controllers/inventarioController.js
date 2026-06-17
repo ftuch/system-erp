@@ -87,6 +87,9 @@ const getMovimientos = async (req, res, next) => {
     );
     const total = countResult[0].total;
 
+    const limitNum = parseInt(limit);
+    const offsetNum = parseInt(offset);
+
     const [rows] = await pool.execute(
       `SELECT m.*, p.nombre as producto_nombre, b.nombre as bodega_nombre,
               u.nombre as usuario_nombre
@@ -133,7 +136,7 @@ const ajustarStock = async (req, res, next) => {
     const tipo = diferencia >= 0 ? 'ajuste' : 'ajuste';
 
     await pool.execute(
-      `INSERT INTO tt_movimientos_inventario (producto_id, bodega_id, tipo, cantidad, motivo, usuario_id)
+      `INSERT INTO tt_movimientos_inventario (producto_id, bodega_id, tipo, cantidad, observaciones, usuario_id)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [producto_id, bodega_id, tipo, Math.abs(diferencia), motivo, req.user.id]
     );
@@ -185,7 +188,7 @@ const traslado = async (req, res, next) => {
     }
 
     await connection.execute(
-      `INSERT INTO tt_movimientos_inventario (producto_id, bodega_id, tipo, cantidad, motivo, usuario_id)
+      `INSERT INTO tt_movimientos_inventario (producto_id, bodega_id, tipo, cantidad, observaciones, usuario_id)
        VALUES (?, ?, 'traslado', ?, ?, ?)`,
       [producto_id, bodega_origen_id, cantidad, `Traslado a bodega ${bodega_destino_id}: ${motivo}`, req.user.id]
     );
