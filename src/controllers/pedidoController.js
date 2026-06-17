@@ -5,11 +5,13 @@ const { successResponse, errorResponse, paginatedResponse } = require('../utils/
 
 const getConfig = async () => {
   const [rows] = await pool.execute('SELECT * FROM tc_pedidos_config WHERE id = 1');
-  return rows[0] || {
-    requiere_revision: 1, requiere_despacho: 1,
-    descuenta_inventario: 0, descuenta_en: 'despacho',
-    rol_revisor_id: null, rol_despachador_id: null,
-    permite_despacho_parcial: 0
+  const cfg = rows[0] || {};
+  return {
+    requiere_revision:       cfg.requiere_aprobacion ?? 1,
+    requiere_despacho:       cfg.requiere_aprobacion ?? 1,
+    descuenta_inventario:    cfg.permite_bonificacion ?? 0,
+    descuenta_en:            cfg.flujo || 'despacho',
+    permite_despacho_parcial: cfg.permite_parcial ?? 0
   };
 };
 
@@ -37,18 +39,14 @@ const actualizarConfig = async (req, res, next) => {
 
     await pool.execute(
       `UPDATE tc_pedidos_config SET
-        requiere_revision = ?, requiere_despacho = ?, descuenta_inventario = ?,
-        descuenta_en = ?, rol_revisor_id = ?, rol_despachador_id = ?,
-        permite_despacho_parcial = ?
+        requiere_aprobacion = ?, permite_parcial = ?, permite_bonificacion = ?,
+        flujo = ?, activo = 1
        WHERE id = 1`,
       [
         requiere_revision ? 1 : 0,
-        requiere_despacho ? 1 : 0,
+        permite_despacho_parcial ? 1 : 0,
         descuenta_inventario ? 1 : 0,
-        descuenta_en || 'despacho',
-        rol_revisor_id || null,
-        rol_despachador_id || null,
-        permite_despacho_parcial ? 1 : 0
+        descuenta_en || 'despacho'
       ]
     );
     return successResponse(res, null, 'Configuración actualizada');

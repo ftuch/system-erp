@@ -42,7 +42,7 @@ async function setup() {
   await conn.execute(`
     CREATE TABLE IF NOT EXISTS tc_pedidos_config (id int NOT NULL AUTO_INCREMENT, requiere_aprobacion tinyint(1) DEFAULT 1, permite_parcial tinyint(1) DEFAULT 1, permite_bonificacion tinyint(1) DEFAULT 1, flujo varchar(50) DEFAULT 'despacho', created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP, updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, activo tinyint(1) DEFAULT 1, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
-  await conn.execute(`INSERT IGNORE INTO tc_pedidos_config (id,requiere_revision,requiere_despacho,descuenta_inventario,descuenta_en,permite_despacho_parcial) VALUES (1,1,1,1,'despacho',1);`);
+  await conn.execute(`INSERT IGNORE INTO tc_pedidos_config (id,requiere_aprobacion,permite_parcial,permite_bonificacion,flujo,activo) VALUES (1,1,1,1,'despacho',1);`);
 
   await conn.execute(`
     CREATE TABLE IF NOT EXISTS tc_series_documentos (id int NOT NULL AUTO_INCREMENT, sucursal_id int DEFAULT NULL, tipo_documento varchar(50) DEFAULT NULL, serie varchar(20) DEFAULT NULL, ultimo_numero int DEFAULT 0, activo tinyint(1) DEFAULT 1, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
