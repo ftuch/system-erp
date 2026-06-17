@@ -24,7 +24,7 @@ const getAll = async (req, res, next) => {
     const offsetNum = parseInt(offset);
 
     const [rows] = await pool.execute(
-      `SELECT * FROM tc_sucursales ${whereClause} ORDER BY id DESC LIMIT ${limitNum} OFFSET ${offsetNum}`,
+      `SELECT *, activo as estado FROM tc_sucursales ${whereClause} ORDER BY id DESC LIMIT ${limitNum} OFFSET ${offsetNum}`,
       params
     );
 
@@ -67,7 +67,7 @@ const create = async (req, res, next) => {
     const { nombre, direccion, telefono } = req.body;
 
     const [result] = await conn.execute(
-      'INSERT INTO tc_sucursales (nombre, direccion, telefono) VALUES (?, ?, ?)',
+      'INSERT INTO tc_sucursales (nombre, direccion, telefono, activo) VALUES (?, ?, ?, 1)',
       [nombre, direccion, telefono]
     );
     const sucursalId = result.insertId;
@@ -91,11 +91,12 @@ const create = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { nombre, direccion, telefono, activo } = req.body;
+    const { nombre, direccion, telefono, estado, activo } = req.body;
+    const activoVal = activo !== undefined ? activo : (estado !== undefined ? estado : 1);
 
     await pool.execute(
       'UPDATE tc_sucursales SET nombre = ?, direccion = ?, telefono = ?, activo = ? WHERE id = ?',
-      [nombre, direccion, telefono, activo ?? 1, id]
+      [nombre, direccion, telefono, activoVal, id]
     );
 
     return successResponse(res, null, 'Sucursal actualizada exitosamente');
