@@ -98,8 +98,8 @@ const create = async (req, res, next) => {
     } = req.body;
 
     const [result] = await pool.execute(
-      `INSERT INTO tt_productos (nombre, tipo, categoria_id, codigo_barras, unidad, precio, costo, requiere_receta, estado)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+      `INSERT INTO tt_productos (nombre, tipo, categoria_id, codigo_barras, unidad, precio, costo, requiere_receta, activo, estado)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 1)`,
       [nombre, tipo, categoria_id, codigo_barras, unidad, precio, costo, requiere_receta]
     );
 
@@ -148,9 +148,9 @@ const update = async (req, res, next) => {
     await pool.execute(
       `UPDATE tt_productos SET 
         nombre = ?, tipo = ?, categoria_id = ?, codigo_barras = ?, 
-        unidad = ?, precio = ?, costo = ?, requiere_receta = ?, estado = ?
+        unidad = ?, precio = ?, costo = ?, requiere_receta = ?, activo = ?, estado = ?
        WHERE id = ?`,
-      [nombre, tipo, categoria_id, codigo_barras, unidad, precio, costo, requiere_receta, estado, id]
+      [nombre, tipo, categoria_id, codigo_barras, unidad, precio, costo, requiere_receta, estado ?? 1, estado ?? 1, id]
     );
 
     return successResponse(res, null, 'Producto actualizado exitosamente');
@@ -162,7 +162,7 @@ const update = async (req, res, next) => {
 const remove = async (req, res, next) => {
   try {
     const { id } = req.params;
-    await pool.execute('UPDATE tt_productos SET estado = 0 WHERE id = ?', [id]);
+    await pool.execute('UPDATE tt_productos SET activo = 0, estado = 0 WHERE id = ?', [id]);
     return successResponse(res, null, 'Producto desactivado exitosamente');
   } catch (error) {
     next(error);
