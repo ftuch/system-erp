@@ -5,41 +5,44 @@ const getResumen = async (req, res, next) => {
   try {
     const { sucursal_id, fecha_desde, fecha_hasta } = req.query;
     
-    const params = [];
     let whereVentas = 'WHERE 1=1';
     let whereCompras = 'WHERE 1=1';
-    let whereMovimientos = 'WHERE 1=1';
+    const ventasParams = [];
+    const comprasParams = [];
 
     if (sucursal_id) {
       whereVentas += ' AND sucursal_id = ?';
       whereCompras += ' AND sucursal_id = ?';
-      params.push(sucursal_id);
+      ventasParams.push(sucursal_id);
+      comprasParams.push(sucursal_id);
     }
     if (fecha_desde) {
       whereVentas += ' AND DATE(fecha) >= ?';
       whereCompras += ' AND DATE(fecha) >= ?';
-      whereMovimientos += ' AND DATE(fecha) >= ?';
-      params.push(fecha_desde);
+      ventasParams.push(fecha_desde);
+      comprasParams.push(fecha_desde);
     }
     if (fecha_hasta) {
       whereVentas += ' AND DATE(fecha) <= ?';
       whereCompras += ' AND DATE(fecha) <= ?';
-      whereMovimientos += ' AND DATE(fecha) <= ?';
-      params.push(fecha_hasta);
+      ventasParams.push(fecha_hasta);
+      comprasParams.push(fecha_hasta);
     }
 
     const [[ventas]] = await pool.execute(
       `SELECT COUNT(*) as total_ventas, COALESCE(SUM(total), 0) as monto_ventas
-       FROM tt_ventas ${whereVentas} AND estado != 'anulado'`
+       FROM tt_ventas ${whereVentas} AND estado != 'anulado'`,
+      ventasParams
     );
 
     const [[compras]] = await pool.execute(
       `SELECT COUNT(*) as total_compras, COALESCE(SUM(total), 0) as monto_compras
-       FROM tt_compras ${whereCompras} AND estado = 'recibida'`
+       FROM tt_compras ${whereCompras} AND estado = 'recibida'`,
+      comprasParams
     );
 
     const [[productos]] = await pool.execute(
-      'SELECT COUNT(*) as total_productos FROM tt_productos WHERE estado = 1'
+      'SELECT COUNT(*) as total_productos FROM tt_productos WHERE activo = 1'
     );
 
     const [[clientes]] = await pool.execute(
@@ -56,19 +59,22 @@ const getResumen = async (req, res, next) => {
        FROM tt_ventas ${whereVentas} AND estado != 'anulado'
        GROUP BY DATE(fecha)
        ORDER BY fecha DESC
-       LIMIT 7`
+       LIMIT 7`,
+      ventasParams
     );
 
+    const whereProds = whereVentas.replace(/sucursal_id/g, 'v.sucursal_id').replace(/\bfecha\b/g, 'v.fecha');
     const [productosMasVendidos] = await pool.execute(
       `SELECT p.nombre, SUM(d.cantidad) as cantidad_vendida, SUM(d.subtotal) as total_ventas
        FROM tt_venta_detalle d
        JOIN tt_productos p ON d.producto_id = p.id
        JOIN tt_ventas v ON d.venta_id = v.id
-       ${whereVentas.replace(/sucursal_id/g, 'v.sucursal_id').replace(/fecha/g, 'v.fecha')}
+       ${whereProds}
        AND v.estado != 'anulado'
        GROUP BY d.producto_id
        ORDER BY cantidad_vendida DESC
-       LIMIT 5`
+       LIMIT 5`,
+      ventasParams
     );
 
     return successResponse(res, {
@@ -130,7 +136,53 @@ const getKardex = async (req, res, next) => {
   }
 };
 
+const getTopClientes = async (req, res, next) => {
+  try {
+    const { fecha_desde, fecha_hasta, limit = 10 } = req.query;
+    let where = "WHERE v.estado != 'anulado'";
+    const params = [];
+
+    if (fecha_desde) { where += ' AND DATE(v.fecha) >= ?'; params.push(fecha_desde); }
+    if (fecha_hasta) { where += ' AND DATE(v.fecha) <= ?'; params.push(fecha_hasta); }
+
+    const [rows] = await pool.execute(
+      `SELECT p.nombre, COUNT(v.id) as total_compras, COALESCE(SUM(v.total), 0) as total_monto
+       FROM tt_ventas v
+       LEFT JOIN tt_personas p ON v.cliente_id = p.id
+       ${where}
+       AND v.cliente_id IS NOT NULL
+       GROUP BY v.cliente_id
+       ORDER BY total_monto DESC
+       LIMIT ${parseInt(limit)}`,
+      params
+    );
+
+    return successResponse(res, rows);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getStockBajo = async (req, res, next) => {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT p.nombre, e.stock_actual, e.stock_minimo
+       FROM tt_existencias e
+       JOIN tt_productos p ON e.producto_id = p.id
+       WHERE e.stock_actual <= e.stock_minimo
+       ORDER BY e.stock_actual ASC
+       LIMIT 20`
+    );
+
+    return successResponse(res, rows);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getResumen,
-  getKardex
+  getKardex,
+  getTopClientes,
+  getStockBajo
 };

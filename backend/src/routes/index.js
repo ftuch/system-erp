@@ -150,6 +150,8 @@ router.post('/pedidos/:id/cancelar',         authenticate, authorize('pedidos'),
 // ==================== DASHBOARD ====================
 router.get('/dashboard/resumen', authenticate, dashboardController.getResumen);
 router.get('/dashboard/kardex', authenticate, dashboardController.getKardex);
+router.get('/dashboard/top-clientes', authenticate, dashboardController.getTopClientes);
+router.get('/dashboard/stock-bajo', authenticate, dashboardController.getStockBajo);
 
 // ==================== MIGRACIÓN (uso único) ====================
 router.get('/migrate/menus', async (req, res) => {
