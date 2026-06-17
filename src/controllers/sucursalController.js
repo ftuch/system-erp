@@ -37,7 +37,7 @@ const getAll = async (req, res, next) => {
 const getAllActive = async (req, res, next) => {
   try {
     const [rows] = await pool.execute(
-      'SELECT id, nombre, direccion FROM tc_sucursales WHERE estado = 1 ORDER BY nombre'
+      'SELECT id, nombre, direccion FROM tc_sucursales WHERE activo = 1 ORDER BY nombre'
     );
     return successResponse(res, rows);
   } catch (error) {
@@ -91,11 +91,11 @@ const create = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { nombre, direccion, telefono, estado } = req.body;
+    const { nombre, direccion, telefono, activo } = req.body;
 
     await pool.execute(
-      'UPDATE tc_sucursales SET nombre = ?, direccion = ?, telefono = ?, estado = ? WHERE id = ?',
-      [nombre, direccion, telefono, estado, id]
+      'UPDATE tc_sucursales SET nombre = ?, direccion = ?, telefono = ?, activo = ? WHERE id = ?',
+      [nombre, direccion, telefono, activo ?? 1, id]
     );
 
     return successResponse(res, null, 'Sucursal actualizada exitosamente');
