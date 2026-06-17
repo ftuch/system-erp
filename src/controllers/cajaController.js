@@ -78,7 +78,7 @@ const getById = async (req, res, next) => {
     const [arqueos] = await pool.execute(
       `SELECT a.*, u.nombre as usuario_nombre
        FROM tt_arqueos_caja a
-       JOIN tt_usuarios u ON a.usuario_id = u.id
+       LEFT JOIN tt_usuarios u ON a.usuario_id = u.id
        WHERE a.caja_id = ?
        ORDER BY a.fecha DESC`,
       [id]
@@ -104,9 +104,9 @@ const abrir = async (req, res, next) => {
     }
 
     const [result] = await pool.execute(
-      `INSERT INTO tt_cajas (sucursal_id, usuario_id, nombre, estado, monto_inicial)
-       VALUES (?, ?, ?, 'abierta', ?)`,
-      [sucursal_id, req.user.id, nombre || `Caja ${new Date().toLocaleDateString()}`, monto_inicial]
+      `INSERT INTO tt_cajas (sucursal_id, usuario_apertura, nombre, estado, saldo_inicial, saldo_actual, fecha_apertura)
+       VALUES (?, ?, ?, 'abierta', ?, ?, NOW())`,
+      [sucursal_id, req.user.id, nombre || `Caja ${new Date().toLocaleDateString()}`, monto_inicial || 0, monto_inicial || 0]
     );
 
     return successResponse(res, { id: result.insertId }, 'Caja abierta exitosamente', 201);
@@ -134,9 +134,9 @@ const cerrar = async (req, res, next) => {
     }
 
     await pool.execute(
-      `UPDATE tt_cajas SET estado = 'cerrada', monto_cierre = ?, fecha_cierre = NOW()
+      `UPDATE tt_cajas SET estado = 'cerrada', usuario_cierre = ?, fecha_cierre = NOW()
        WHERE id = ?`,
-      [monto_cierre, id]
+      [req.user.id, id]
     );
 
     return successResponse(res, null, 'Caja cerrada exitosamente');
@@ -147,7 +147,7 @@ const cerrar = async (req, res, next) => {
 
 const movimiento = async (req, res, next) => {
   try {
-    const { caja_id, tipo, categoria, monto, descripcion } = req.body;
+    const { caja_id, tipo, categoria, monto, descripcion, concepto } = req.body;
 
     const [caja] = await pool.execute(
       'SELECT estado FROM tt_cajas WHERE id = ?',
@@ -159,9 +159,9 @@ const movimiento = async (req, res, next) => {
     }
 
     const [result] = await pool.execute(
-      `INSERT INTO tt_movimientos_caja (caja_id, usuario_id, tipo, categoria, monto, descripcion)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [caja_id, req.user.id, tipo, categoria, monto, descripcion]
+      `INSERT INTO tt_movimientos_caja (caja_id, usuario_id, tipo, concepto, monto)
+       VALUES (?, ?, ?, ?, ?)`,
+      [caja_id, req.user.id, tipo, concepto || categoria || descripcion, monto]
     );
 
     return successResponse(res, { id: result.insertId }, 'Movimiento registrado exitosamente', 201);
@@ -172,13 +172,14 @@ const movimiento = async (req, res, next) => {
 
 const arqueo = async (req, res, next) => {
   try {
-    const { caja_id, monto_sistema, monto_fisico, observaciones } = req.body;
-    const diferencia = monto_fisico - monto_sistema;
+    const { caja_id, monto_sistema, monto_fisico, monto_declarado, observaciones } = req.body;
+    const montoDeclarado = monto_declarado || monto_fisico || 0;
+    const diferencia = montoDeclarado - (monto_sistema || 0);
 
     const [result] = await pool.execute(
-      `INSERT INTO tt_arqueos_caja (caja_id, usuario_id, monto_sistema, monto_fisico, diferencia, observaciones)
+      `INSERT INTO tt_arqueos_caja (caja_id, usuario_id, monto_declarado, monto_sistema, diferencia, observaciones)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [caja_id, req.user.id, monto_sistema, monto_fisico, diferencia, observaciones]
+      [caja_id, req.user.id, montoDeclarado, monto_sistema || 0, diferencia, observaciones]
     );
 
     return successResponse(res, { id: result.insertId, diferencia }, 'Arqueo registrado exitosamente', 201);

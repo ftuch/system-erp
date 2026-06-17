@@ -72,8 +72,8 @@ const getAll = async (req, res, next) => {
 
     const [total] = await pool.execute(
       `SELECT COUNT(*) as total FROM tt_pedidos p
-       JOIN tc_sucursales s ON p.sucursal_id = s.id
-       JOIN tt_usuarios u ON p.usuario_id = u.id
+       LEFT JOIN tc_sucursales s ON p.sucursal_id = s.id
+       LEFT JOIN tt_usuarios u ON p.usuario_id = u.id
        WHERE ${where}`,
       params
     );
@@ -81,16 +81,12 @@ const getAll = async (req, res, next) => {
     const [rows] = await pool.execute(
       `SELECT p.*,
               s.nombre  as sucursal_nombre,
-              u.nombre  as usuario_nombre,
-              r.nombre  as revisor_nombre,
-              d.nombre  as despachador_nombre
+              u.nombre  as usuario_nombre
        FROM tt_pedidos p
-       JOIN tc_sucursales s ON p.sucursal_id = s.id
-       JOIN tt_usuarios u   ON p.usuario_id  = u.id
-       LEFT JOIN tt_usuarios r ON p.revisor_id = r.id
-       LEFT JOIN tt_usuarios d ON p.despachador_id = d.id
+       LEFT JOIN tc_sucursales s ON p.sucursal_id = s.id
+       LEFT JOIN tt_usuarios u   ON p.usuario_id  = u.id
        WHERE ${where}
-       ORDER BY p.fecha_pedido DESC
+       ORDER BY p.fecha DESC
        LIMIT ${limit} OFFSET ${offset}`,
       params
     );
@@ -107,14 +103,10 @@ const getById = async (req, res, next) => {
     const [rows] = await pool.execute(
       `SELECT p.*,
               s.nombre as sucursal_nombre,
-              u.nombre as usuario_nombre,
-              r.nombre as revisor_nombre,
-              d.nombre as despachador_nombre
+              u.nombre as usuario_nombre
        FROM tt_pedidos p
-       JOIN tc_sucursales s ON p.sucursal_id = s.id
-       JOIN tt_usuarios u   ON p.usuario_id  = u.id
-       LEFT JOIN tt_usuarios r ON p.revisor_id = r.id
-       LEFT JOIN tt_usuarios d ON p.despachador_id = d.id
+       LEFT JOIN tc_sucursales s ON p.sucursal_id = s.id
+       LEFT JOIN tt_usuarios u   ON p.usuario_id  = u.id
        WHERE p.id = ?`,
       [id]
     );
@@ -155,18 +147,18 @@ const create = async (req, res, next) => {
     }
 
     const [result] = await conn.execute(
-      `INSERT INTO tt_pedidos (numero, sucursal_id, usuario_id, estado, observaciones, total)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [numero, sucursal_id || req.user.sucursal_id, req.user.id, estadoInicial, observaciones || null, total]
+      `INSERT INTO tt_pedidos (sucursal_id, usuario_id, estado, observaciones)
+       VALUES (?, ?, ?, ?)`,
+      [sucursal_id || req.user.sucursal_id, req.user.id, estadoInicial, observaciones || null]
     );
     const pedidoId = result.insertId;
 
     for (const item of detalle) {
       const sub = item.cantidad * (item.precio_unitario || 0);
       await conn.execute(
-        `INSERT INTO tt_pedido_detalle (pedido_id, producto_id, descripcion, cantidad, precio_unitario, subtotal)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [pedidoId, item.producto_id, item.descripcion || null, item.cantidad, item.precio_unitario || 0, sub]
+        `INSERT INTO tt_pedido_detalle (pedido_id, producto_id, cantidad, precio_unitario, subtotal)
+         VALUES (?, ?, ?, ?, ?)`,
+        [pedidoId, item.producto_id, item.cantidad, item.precio_unitario || 0, sub]
       );
     }
 
@@ -174,8 +166,8 @@ const create = async (req, res, next) => {
     if (!cfg.requiere_revision && !cfg.requiere_despacho && cfg.descuenta_inventario) {
       await ingresarInventario(conn, pedidoId, detalle, req.user.id);
       await conn.execute(
-        `UPDATE tt_pedidos SET estado='recibido', despachador_id=?, fecha_despacho=NOW() WHERE id=?`,
-        [req.user.id, pedidoId]
+        `UPDATE tt_pedidos SET estado='recibido' WHERE id=?`,
+        [pedidoId]
       );
     }
 
@@ -206,8 +198,8 @@ const aprobar = async (req, res, next) => {
     const siguienteEstado = cfg.requiere_despacho ? 'aprobado' : 'recibido';
 
     await conn.execute(
-      `UPDATE tt_pedidos SET estado=?, revisor_id=?, comentario_revision=?, fecha_revision=NOW() WHERE id=?`,
-      [siguienteEstado, req.user.id, comentario_revision || null, id]
+      `UPDATE tt_pedidos SET estado=?, comentario_revision=? WHERE id=?`,
+      [siguienteEstado, comentario_revision || null, id]
     );
 
     // Si se aprueba e ingresa inventario en este paso
@@ -216,12 +208,6 @@ const aprobar = async (req, res, next) => {
       await ingresarInventario(conn, id, detalle, req.user.id);
     }
 
-    if (!cfg.requiere_despacho) {
-      await conn.execute(
-        `UPDATE tt_pedidos SET despachador_id=?, fecha_despacho=NOW() WHERE id=?`,
-        [req.user.id, id]
-      );
-    }
 
     await conn.commit();
     return successResponse(res, null, cfg.requiere_despacho ? 'Pedido aprobado' : 'Pedido aprobado y recibido');
@@ -242,8 +228,8 @@ const rechazar = async (req, res, next) => {
       return errorResponse(res, `No se puede rechazar un pedido en estado "${rows[0].estado}"`);
 
     await pool.execute(
-      `UPDATE tt_pedidos SET estado='rechazado', revisor_id=?, comentario_revision=?, fecha_revision=NOW() WHERE id=?`,
-      [req.user.id, comentario_revision || null, id]
+      `UPDATE tt_pedidos SET estado='rechazado', comentario_revision=? WHERE id=?`,
+      [comentario_revision || null, id]
     );
     return successResponse(res, null, 'Pedido rechazado');
   } catch (e) { next(e); }
@@ -308,9 +294,8 @@ const recibir = async (req, res, next) => {
     const estadoFinal = esParcial ? 'recibido_parcial' : 'recibido';
 
     await conn.execute(
-      `UPDATE tt_pedidos SET estado=?, despachador_id=?, fecha_despacho=NOW(),
-       observaciones_recepcion=? WHERE id=?`,
-      [estadoFinal, req.user.id, observaciones_recepcion || null, id]
+      `UPDATE tt_pedidos SET estado=?, observaciones_recepcion=? WHERE id=?`,
+      [estadoFinal, observaciones_recepcion || null, id]
     );
 
     await conn.commit();
@@ -373,9 +358,9 @@ const ingresarInventarioConBonificacion = async (conn, pedidoId, detalle, usuari
     if (cantidadRecibida > 0) {
       await conn.execute(
         `INSERT INTO tt_movimientos_inventario
-          (producto_id, bodega_id, tipo, cantidad, motivo, referencia_id, referencia_tipo, usuario_id)
-         VALUES (?, ?, 'entrada', ?, 'Recepción de pedido', ?, 'pedido', ?)`,
-        [item.producto_id, bodegaId, cantidadRecibida, pedidoId, usuarioId]
+          (producto_id, bodega_id, tipo, cantidad, observaciones, usuario_id)
+         VALUES (?, ?, 'entrada', ?, 'Recepción de pedido', ?)`,
+        [item.producto_id, bodegaId, cantidadRecibida, usuarioId]
       );
     }
 
@@ -383,9 +368,9 @@ const ingresarInventarioConBonificacion = async (conn, pedidoId, detalle, usuari
     if (bonificacion > 0) {
       await conn.execute(
         `INSERT INTO tt_movimientos_inventario
-          (producto_id, bodega_id, tipo, cantidad, motivo, referencia_id, referencia_tipo, usuario_id)
-         VALUES (?, ?, 'entrada', ?, 'Bonificación de pedido', ?, 'pedido', ?)`,
-        [item.producto_id, bodegaId, bonificacion, pedidoId, usuarioId]
+          (producto_id, bodega_id, tipo, cantidad, observaciones, usuario_id)
+         VALUES (?, ?, 'entrada', ?, 'Bonificación de pedido', ?)`,
+        [item.producto_id, bodegaId, bonificacion, usuarioId]
       );
     }
   }

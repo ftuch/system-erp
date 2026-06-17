@@ -14,7 +14,7 @@ const getAll = async (req, res, next) => {
       params.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
     if (estado !== undefined) {
-      whereClause += ' AND estado = ?';
+      whereClause += ' AND activo = ?';
       params.push(estado);
     }
 
@@ -44,7 +44,7 @@ const getAll = async (req, res, next) => {
 const getAllActive = async (req, res, next) => {
   try {
     const [rows] = await pool.execute(
-      'SELECT id, nombre, nit FROM tt_proveedores WHERE estado = 1 ORDER BY nombre'
+      'SELECT id, nombre, nit FROM tt_proveedores WHERE activo = 1 ORDER BY nombre'
     );
     return successResponse(res, rows);
   } catch (error) {
@@ -82,7 +82,7 @@ const create = async (req, res, next) => {
     const { nombre, nit, telefono, email, direccion, contacto } = req.body;
 
     const [result] = await pool.execute(
-      `INSERT INTO tt_proveedores (nombre, nit, telefono, email, direccion, contacto, estado)
+      `INSERT INTO tt_proveedores (nombre, nit, telefono, email, direccion, contacto, activo)
        VALUES (?, ?, ?, ?, ?, ?, 1)`,
       [nombre, nit, telefono, email, direccion, contacto]
     );
@@ -100,9 +100,9 @@ const update = async (req, res, next) => {
 
     await pool.execute(
       `UPDATE tt_proveedores SET 
-        nombre = ?, nit = ?, telefono = ?, email = ?, direccion = ?, contacto = ?, estado = ?
+        nombre = ?, nit = ?, telefono = ?, email = ?, direccion = ?, contacto = ?, activo = ?
        WHERE id = ?`,
-      [nombre, nit, telefono, email, direccion, contacto, estado, id]
+      [nombre, nit, telefono, email, direccion, contacto, estado ?? 1, id]
     );
 
     return successResponse(res, null, 'Proveedor actualizado exitosamente');
@@ -114,7 +114,7 @@ const update = async (req, res, next) => {
 const remove = async (req, res, next) => {
   try {
     const { id } = req.params;
-    await pool.execute('UPDATE tt_proveedores SET estado = 0 WHERE id = ?', [id]);
+    await pool.execute('UPDATE tt_proveedores SET activo = 0 WHERE id = ?', [id]);
     return successResponse(res, null, 'Proveedor desactivado exitosamente');
   } catch (error) {
     next(error);

@@ -116,6 +116,17 @@ async function setup() {
   try { await conn.execute(`ALTER TABLE tt_movimientos_inventario ADD COLUMN motivo varchar(200) DEFAULT NULL`); } catch(e) {}
   try { await conn.execute(`ALTER TABLE tt_movimientos_inventario ADD COLUMN referencia_tipo varchar(100) DEFAULT NULL`); } catch(e) {}
   try { await conn.execute(`ALTER TABLE tt_usuarios ADD COLUMN puede_ajustar_inventario tinyint(1) DEFAULT 0`); } catch(e) {}
+  try { await conn.execute(`ALTER TABLE tt_pedidos ADD COLUMN observaciones_recepcion text DEFAULT NULL`); } catch(e) {}
+  try { await conn.execute(`ALTER TABLE tt_pedidos ADD COLUMN comentario_revision text DEFAULT NULL`); } catch(e) {}
+  try { await conn.execute(`ALTER TABLE tt_pedido_detalle ADD COLUMN cantidad_recibida int DEFAULT 0`); } catch(e) {}
+  try { await conn.execute(`ALTER TABLE tt_pedido_detalle ADD COLUMN bonificacion int DEFAULT 0`); } catch(e) {}
+  try { await conn.execute(`ALTER TABLE tt_movimientos_caja ADD COLUMN concepto varchar(200) DEFAULT NULL`); } catch(e) {}
+  try { await conn.execute(`ALTER TABLE tt_proveedores ADD COLUMN activo tinyint(1) DEFAULT 1`); } catch(e) {}
+  await conn.execute(`UPDATE tt_proveedores SET activo=1 WHERE activo IS NULL`);
+  try { await conn.execute(`ALTER TABLE tt_cajas ADD COLUMN nombre varchar(100) DEFAULT NULL`); } catch(e) {}
+  try { await conn.execute(`ALTER TABLE tt_cajas ADD COLUMN monto_inicial decimal(10,2) DEFAULT 0`); } catch(e) {}
+  try { await conn.execute(`ALTER TABLE tt_cajas ADD COLUMN monto_cierre decimal(10,2) DEFAULT NULL`); } catch(e) {}
+  try { await conn.execute(`ALTER TABLE tt_arqueos_caja ADD COLUMN tipo varchar(20) DEFAULT 'arqueo'`); } catch(e) {}
 
   const [tables] = await conn.execute('SHOW TABLES');
   console.log(`✅ ${tables.length} tablas creadas exitosamente`);

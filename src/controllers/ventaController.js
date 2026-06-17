@@ -146,9 +146,9 @@ const create = async (req, res, next) => {
 
       if (bodega.length > 0) {
         await connection.execute(
-          `INSERT INTO tt_movimientos_inventario (producto_id, bodega_id, tipo, cantidad, motivo, referencia_id, referencia_tipo, usuario_id)
-           VALUES (?, ?, 'salida', ?, 'Venta', ?, 'venta', ?)`,
-          [item.producto_id, bodega[0].id, item.cantidad, ventaId, req.user.id]
+          `INSERT INTO tt_movimientos_inventario (producto_id, bodega_id, tipo, cantidad, observaciones, usuario_id)
+           VALUES (?, ?, 'salida', ?, 'Venta', ?)`,
+          [item.producto_id, bodega[0].id, item.cantidad, req.user.id]
         );
       }
     }
@@ -162,9 +162,9 @@ const create = async (req, res, next) => {
     }
 
     await connection.execute(
-      `INSERT INTO tt_movimientos_caja (caja_id, usuario_id, tipo, categoria, monto, descripcion)
-       VALUES (?, ?, 'ingreso', 'venta', ?, ?)`,
-      [caja_id, req.user.id, total, `Venta #${correlativo}`]
+      `INSERT INTO tt_movimientos_caja (caja_id, usuario_id, tipo, concepto, monto)
+       VALUES (?, ?, 'ingreso', ?, ?)`,
+      [caja_id, req.user.id, `Venta #${correlativo}`, total]
     );
 
     await connection.commit();
@@ -221,9 +221,9 @@ const anular = async (req, res, next) => {
         );
 
         await connection.execute(
-          `INSERT INTO tt_movimientos_inventario (producto_id, bodega_id, tipo, cantidad, motivo, referencia_id, referencia_tipo, usuario_id)
-           VALUES (?, ?, 'entrada', ?, ?, ?, 'anulacion_venta', ?)`,
-          [item.producto_id, bodega[0].id, item.cantidad, `Anulación: ${motivo}`, id, req.user.id]
+          `INSERT INTO tt_movimientos_inventario (producto_id, bodega_id, tipo, cantidad, observaciones, usuario_id)
+           VALUES (?, ?, 'entrada', ?, ?, ?)`,
+          [item.producto_id, bodega[0].id, item.cantidad, `Anulación: ${motivo}`, req.user.id]
         );
       }
     }
