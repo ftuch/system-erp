@@ -35,8 +35,8 @@ const getAll = async (req, res, next) => {
               (SELECT SUM(monto) FROM tt_movimientos_caja WHERE caja_id = c.id AND tipo = 'ingreso') as total_ingresos,
               (SELECT SUM(monto) FROM tt_movimientos_caja WHERE caja_id = c.id AND tipo = 'egreso') as total_egresos
        FROM tt_cajas c
-       JOIN tc_sucursales s ON c.sucursal_id = s.id
-       JOIN tt_usuarios u ON c.usuario_id = u.id
+       LEFT JOIN tc_sucursales s ON c.sucursal_id = s.id
+       LEFT JOIN tt_usuarios u ON c.usuario_apertura = u.id
        ${whereClause}
        ORDER BY c.fecha_apertura DESC
        LIMIT ${limitNum} OFFSET ${offsetNum}`,
@@ -56,8 +56,8 @@ const getById = async (req, res, next) => {
     const [cajas] = await pool.execute(
       `SELECT c.*, s.nombre as sucursal_nombre, u.nombre as usuario_nombre
        FROM tt_cajas c
-       JOIN tc_sucursales s ON c.sucursal_id = s.id
-       JOIN tt_usuarios u ON c.usuario_id = u.id
+       LEFT JOIN tc_sucursales s ON c.sucursal_id = s.id
+       LEFT JOIN tt_usuarios u ON c.usuario_apertura = u.id
        WHERE c.id = ?`,
       [id]
     );
@@ -192,8 +192,8 @@ const getActiva = async (req, res, next) => {
     const [rows] = await pool.execute(
       `SELECT c.*, s.nombre as sucursal_nombre, u.nombre as usuario_nombre
        FROM tt_cajas c
-       JOIN tc_sucursales s ON c.sucursal_id = s.id
-       JOIN tt_usuarios u ON c.usuario_id = u.id
+       LEFT JOIN tc_sucursales s ON c.sucursal_id = s.id
+       LEFT JOIN tt_usuarios u ON c.usuario_apertura = u.id
        WHERE c.sucursal_id = ? AND c.estado = 'abierta'
        LIMIT 1`,
       [req.user.sucursal_id]
