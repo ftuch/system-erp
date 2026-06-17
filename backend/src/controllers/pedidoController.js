@@ -77,7 +77,10 @@ const getAll = async (req, res, next) => {
     );
 
     const [rows] = await pool.execute(
-      `SELECT p.*,
+      `SELECT p.id, p.estado, p.observaciones, p.comentario_revision,
+              CONCAT('PED-', LPAD(p.id, 5, '0')) as numero,
+              COALESCE((SELECT SUM(pd.subtotal) FROM tt_pedido_detalle pd WHERE pd.pedido_id = p.id), 0) as total,
+              p.fecha as fecha_pedido,
               s.nombre  as sucursal_nombre,
               u.nombre  as usuario_nombre
        FROM tt_pedidos p
@@ -99,12 +102,20 @@ const getById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const [rows] = await pool.execute(
-      `SELECT p.*,
+      `SELECT p.id, p.estado, p.observaciones, p.comentario_revision,
+              p.observaciones_recepcion,
+              CONCAT('PED-', LPAD(p.id, 5, '0')) as numero,
+              COALESCE((SELECT SUM(pd2.subtotal) FROM tt_pedido_detalle pd2 WHERE pd2.pedido_id = p.id), 0) as total,
+              p.fecha as fecha_pedido,
               s.nombre as sucursal_nombre,
-              u.nombre as usuario_nombre
+              u.nombre as usuario_nombre,
+              r.nombre as revisor_nombre,
+              d.nombre as despachador_nombre
        FROM tt_pedidos p
        LEFT JOIN tc_sucursales s ON p.sucursal_id = s.id
        LEFT JOIN tt_usuarios u   ON p.usuario_id  = u.id
+       LEFT JOIN tt_usuarios r   ON p.revisor_id  = r.id
+       LEFT JOIN tt_usuarios d   ON p.despachador_id = d.id
        WHERE p.id = ?`,
       [id]
     );
