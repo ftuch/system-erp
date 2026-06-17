@@ -412,7 +412,11 @@ export class ProveedoresComponent implements OnInit {
     const nuevoEstado = p.estado === 1 ? 0 : 1;
     const msg = nuevoEstado === 0 ? `¿Desactivar "${p.nombre}"?` : `¿Activar "${p.nombre}"?`;
     if (!confirm(msg)) return;
-    this.api.put(`/proveedores/${p.id}`, { ...p, estado: nuevoEstado }).subscribe({
+    this.api.put(`/proveedores/${p.id}`, {
+      nombre: p.nombre, nit: p.nit, contacto: p.contacto,
+      telefono: p.telefono, email: p.email, direccion: p.direccion,
+      estado: nuevoEstado
+    }).subscribe({
       next: () => { this.load(); this.showToast(nuevoEstado === 1 ? 'Proveedor activado' : 'Proveedor desactivado'); },
       error: () => this.showToast('Error al cambiar estado', true)
     });

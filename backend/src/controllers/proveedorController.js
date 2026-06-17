@@ -13,7 +13,7 @@ const getAll = async (req, res, next) => {
       whereClause += ' AND (nombre LIKE ? OR nit LIKE ? OR contacto LIKE ?)';
       params.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
-    if (estado !== undefined) {
+    if (estado !== undefined && estado !== '') {
       whereClause += ' AND activo = ?';
       params.push(estado);
     }
@@ -31,7 +31,8 @@ const getAll = async (req, res, next) => {
 
 
     const [rows] = await pool.execute(
-      `SELECT * FROM tt_proveedores ${whereClause} ORDER BY nombre LIMIT ${limitNum} OFFSET ${offsetNum}`,
+      `SELECT id, nombre, nit, telefono, email, direccion, contacto, activo as estado, created_at
+       FROM tt_proveedores ${whereClause} ORDER BY nombre LIMIT ${limitNum} OFFSET ${offsetNum}`,
       params
     );
 
@@ -55,7 +56,10 @@ const getAllActive = async (req, res, next) => {
 const getById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const [rows] = await pool.execute('SELECT * FROM tt_proveedores WHERE id = ?', [id]);
+    const [rows] = await pool.execute(
+      'SELECT id, nombre, nit, telefono, email, direccion, contacto, activo as estado, created_at FROM tt_proveedores WHERE id = ?',
+      [id]
+    );
 
     if (rows.length === 0) {
       return errorResponse(res, 'Proveedor no encontrado', 404);
