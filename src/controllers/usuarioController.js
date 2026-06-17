@@ -26,7 +26,7 @@ const getAll = async (req, res, next) => {
 
     const [rows] = await pool.execute(
       `SELECT u.id, u.nombre, u.usuario, u.rol_id, u.sucursal_id,
-              u.puede_ajustar_inventario, u.estado,
+              u.activo as estado,
               r.nombre as rol_nombre, s.nombre as sucursal_nombre
        FROM tt_usuarios u
        LEFT JOIN ts_roles r ON u.rol_id = r.id
@@ -68,14 +68,14 @@ const getById = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
-    const { nombre, usuario, password, rol_id, sucursal_id, puede_ajustar_inventario = 0 } = req.body;
+    const { nombre, usuario, password, rol_id, sucursal_id } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await pool.execute(
-      `INSERT INTO tt_usuarios (nombre, usuario, password, rol_id, sucursal_id, puede_ajustar_inventario, estado)
-       VALUES (?, ?, ?, ?, ?, ?, 1)`,
-      [nombre, usuario, hashedPassword, rol_id, sucursal_id, puede_ajustar_inventario]
+      `INSERT INTO tt_usuarios (nombre, usuario, password, rol_id, sucursal_id, activo, estado)
+       VALUES (?, ?, ?, ?, ?, 1, 1)`,
+      [nombre, usuario, hashedPassword, rol_id, sucursal_id]
     );
 
     return successResponse(res, { id: result.insertId }, 'Usuario creado exitosamente', 201);
@@ -87,14 +87,14 @@ const create = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { nombre, usuario, rol_id, sucursal_id, puede_ajustar_inventario, estado } = req.body;
+    const { nombre, usuario, rol_id, sucursal_id, estado } = req.body;
 
     await pool.execute(
       `UPDATE tt_usuarios SET 
-        nombre = ?, usuario = ?, rol_id = ?, sucursal_id = ?, 
-        puede_ajustar_inventario = ?, estado = ?
+        nombre = ?, usuario = ?, rol_id = ?, sucursal_id = ?,
+        activo = ?, estado = ?
        WHERE id = ?`,
-      [nombre, usuario, rol_id, sucursal_id, puede_ajustar_inventario, estado, id]
+      [nombre, usuario, rol_id, sucursal_id, estado ?? 1, estado ?? 1, id]
     );
 
     return successResponse(res, null, 'Usuario actualizado exitosamente');

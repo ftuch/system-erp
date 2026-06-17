@@ -13,7 +13,7 @@ const getAll = async (req, res, next) => {
 const getById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const [rows] = await pool.execute('SELECT * FROM tc_categorias WHERE categorias_id = ?', [id]);
+    const [rows] = await pool.execute('SELECT * FROM tc_categorias WHERE id = ?', [id]);
 
     if (rows.length === 0) {
       return errorResponse(res, 'Categoría no encontrada', 404);
@@ -46,7 +46,7 @@ const update = async (req, res, next) => {
     const { nombre } = req.body;
 
     await pool.execute(
-      'UPDATE tc_categorias SET nombre = ? WHERE categorias_id = ?',
+      'UPDATE tc_categorias SET nombre = ? WHERE id = ?',
       [nombre, id]
     );
 
@@ -59,7 +59,7 @@ const update = async (req, res, next) => {
 const remove = async (req, res, next) => {
   try {
     const { id } = req.params;
-    await pool.execute('DELETE FROM tc_categorias WHERE categorias_id = ?', [id]);
+    await pool.execute('DELETE FROM tc_categorias WHERE id = ?', [id]);
     return successResponse(res, null, 'Categoría eliminada exitosamente');
   } catch (error) {
     next(error);
