@@ -30,6 +30,12 @@ const authenticate = async (req, res, next) => {
 const authorize = (permiso) => {
   return async (req, res, next) => {
     try {
+      // Administrador (rol_id=1) tiene acceso total
+      if (req.user.rol_id === 1) {
+        req.permiso = { puede_ver: 1, puede_crear: 1, puede_editar: 1, puede_eliminar: 1 };
+        return next();
+      }
+
       const [permisos] = await pool.execute(
         `SELECT p.* FROM ts_permisos p
          JOIN tc_menus m ON p.menu_id = m.id
