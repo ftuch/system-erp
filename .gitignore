@@ -1,10 +1,21 @@
-node_modules/
-.env
-.env.*
-logs/
+# Backend
+backend/node_modules/
+backend/.env
+backend/.env.*
+backend/logs/
+backend/*.log
+backend/fix-*.js
+backend/test-*.js
+backend/migrate-*.js
+backend/seed-*.js
+backend/check-*.js
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# General
 *.log
-fix-*.js
-test-*.js
-migrate-*.js
-seed-*.js
-check-*.js
+.DS_Store
+Thumbs.db

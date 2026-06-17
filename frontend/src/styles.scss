@@ -1,0 +1,548 @@
+// =====================================================
+// ESTILOS GLOBALES ERP - SISTEMA DE THEMES PROFESIONAL
+// Usa variables CSS que cambian dinámicamente con ThemeService
+// =====================================================
+
+@import 'styles/variables';
+@import 'styles/mixins';
+
+// Reset y base
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+// Scrollbar global
+* {
+  @include custom-scrollbar();
+}
+
+// =====================================================
+// LAYOUT UTILITIES - USAR EN TODAS LAS PANTALLAS
+// =====================================================
+
+.container {
+  max-width: var(--max-content-width);
+  margin: 0 auto;
+  padding: var(--space-lg);
+}
+
+.content-wrapper {
+  min-height: calc(100vh - var(--header-height));
+  padding: var(--space-lg);
+}
+
+// =====================================================
+// CARDS - COMPONENTE BASE ESTANDARIZADO
+// =====================================================
+
+.card {
+  @include card();
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--space-md);
+    margin-bottom: var(--space-md);
+    border-bottom: 1px solid var(--border);
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+  }
+
+  .card-body {
+    padding: var(--space-sm) 0;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    padding-top: var(--space-md);
+    margin-top: var(--space-md);
+    border-top: 1px solid var(--border);
+  }
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-lg);
+}
+
+// =====================================================
+// BUTTONS - ESTANDARES REUTILIZABLES
+// =====================================================
+
+.btn {
+  @include btn-primary();
+}
+
+.btn-secondary {
+  @include btn-secondary();
+}
+
+.btn-success {
+  @include btn-primary();
+  background: var(--success);
+  &:hover { background: darken(#4caf50, 10%); }
+}
+
+.btn-danger {
+  @include btn-primary();
+  background: var(--error);
+  &:hover { background: darken(#f44336, 10%); }
+}
+
+.btn-warning {
+  @include btn-primary();
+  background: var(--warning);
+  &:hover { background: darken(#ff9800, 10%); }
+}
+
+.btn-sm {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 12px;
+}
+
+.btn-lg {
+  padding: var(--space-md) var(--space-xl);
+  font-size: 16px;
+}
+
+// =====================================================
+// FORM ELEMENTS - ESTANDARES REUTILIZABLES
+// =====================================================
+
+.form-group {
+  margin-bottom: var(--space-md);
+
+  label {
+    display: block;
+    margin-bottom: var(--space-xs);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .form-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: var(--space-xs);
+  }
+}
+
+input, select, textarea {
+  @include input();
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-md);
+}
+
+// =====================================================
+// TABLES - ESTANDARES REUTILIZABLES
+// =====================================================
+
+.table-container {
+  @include card();
+  padding: 0;
+  overflow-x: auto;
+}
+
+table {
+  @include table();
+
+  .actions {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: flex-end;
+  }
+}
+
+// =====================================================
+// GRID SYSTEM - RESPONSIVE
+// =====================================================
+
+.grid {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.grid-1 { grid-template-columns: 1fr; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+@include mobile {
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@include tablet {
+  .grid-3, .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// =====================================================
+// FLEX UTILITIES
+// =====================================================
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-1 { flex: 1; }
+
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+
+.gap-1 { gap: var(--space-xs); }
+.gap-2 { gap: var(--space-sm); }
+.gap-3 { gap: var(--space-md); }
+.gap-4 { gap: var(--space-lg); }
+
+// =====================================================
+// SPACING UTILITIES
+// =====================================================
+
+.mt-1 { margin-top: var(--space-xs); }
+.mt-2 { margin-top: var(--space-sm); }
+.mt-3 { margin-top: var(--space-md); }
+.mt-4 { margin-top: var(--space-lg); }
+.mt-5 { margin-top: var(--space-xl); }
+
+.mb-1 { margin-bottom: var(--space-xs); }
+.mb-2 { margin-bottom: var(--space-sm); }
+.mb-3 { margin-bottom: var(--space-md); }
+.mb-4 { margin-bottom: var(--space-lg); }
+.mb-5 { margin-bottom: var(--space-xl); }
+
+.p-1 { padding: var(--space-xs); }
+.p-2 { padding: var(--space-sm); }
+.p-3 { padding: var(--space-md); }
+.p-4 { padding: var(--space-lg); }
+.p-5 { padding: var(--space-xl); }
+
+// =====================================================
+// TEXT UTILITIES
+// =====================================================
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+
+.text-sm { font-size: 12px; }
+.text-md { font-size: 14px; }
+.text-lg { font-size: 18px; }
+.text-xl { font-size: 24px; }
+
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-disabled); }
+
+// =====================================================
+// STATUS BADGES
+// =====================================================
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+
+  &.success {
+    background: var(--success-light);
+    color: var(--success);
+  }
+
+  &.warning {
+    background: var(--warning-light);
+    color: var(--warning);
+  }
+
+  &.error {
+    background: var(--error-light);
+    color: var(--error);
+  }
+
+  &.info {
+    background: var(--info-light);
+    color: var(--info);
+  }
+}
+
+// =====================================================
+// LOADING STATES
+// =====================================================
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(var(--background), 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal-backdrop);
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// =====================================================
+// ALERTS / MESSAGES
+// =====================================================
+
+.alert {
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-md);
+
+  &.success {
+    background: var(--success-light);
+    border-left: 4px solid var(--success);
+  }
+
+  &.warning {
+    background: var(--warning-light);
+    border-left: 4px solid var(--warning);
+  }
+
+  &.error {
+    background: var(--error-light);
+    border-left: 4px solid var(--error);
+  }
+}
+
+// =====================================================
+// FULL WIDTH UTILITY
+// =====================================================
+
+.full-width { width: 100%; }
+
+// =====================================================
+// SIDEBAR LAYOUT (para módulos con menú lateral)
+// =====================================================
+
+.layout-sidebar {
+  display: flex;
+  min-height: 100vh;
+
+  .sidebar {
+    width: var(--sidebar-width);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    transition: width var(--transition-normal);
+  }
+
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+  }
+}
+
+// =====================================================
+// PAGE HEADER ESTANDAR
+// =====================================================
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border);
+
+  h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .page-actions {
+    display: flex;
+    gap: var(--space-sm);
+  }
+}
+
+// =====================================================
+// MODAL / DIALOG BASE
+// =====================================================
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal-backdrop);
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// =====================================================
+// RESPONSIVE GLOBAL — Móvil y Tablet
+// =====================================================
+
+// Tablas con scroll horizontal en móvil
+@media (max-width: 768px) {
+  .table-wrap,
+  .items-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  // Page headers
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px;
+
+    .header-actions {
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button, a {
+      font-size: 13px;
+      padding: 8px 12px;
+    }
+  }
+
+  // Cards
+  .card {
+    padding: 14px !important;
+    border-radius: 10px !important;
+  }
+
+  // Filtros en columna
+  .filters-bar,
+  .filter-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+
+    input, select {
+      width: 100% !important;
+    }
+  }
+
+  // Modales full-width en móvil
+  .modal {
+    padding: 12px !important;
+    align-items: flex-end !important;
+  }
+
+  .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  // KPI cards en 2 columnas
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  // Grids de tablas en 2 columnas
+  .tables-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  // Chips y badges más pequeños
+  .chip { font-size: 10px !important; padding: 2px 6px !important; }
+
+  // Botones táctiles más grandes
+  .btn, button[class*="btn"] {
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .kpi-card {
+    padding: 14px !important;
+  }
+
+  .kpi-value {
+    font-size: 22px !important;
+  }
+
+  .page-title {
+    font-size: 18px !important;
+  }
+}
