@@ -151,4 +151,28 @@ router.post('/pedidos/:id/cancelar',         authenticate, authorize('pedidos'),
 router.get('/dashboard/resumen', authenticate, dashboardController.getResumen);
 router.get('/dashboard/kardex', authenticate, dashboardController.getKardex);
 
+// ==================== MIGRACIÓN (uso único) ====================
+router.get('/migrate/menus', async (req, res) => {
+  if (req.query.key !== 'erp-migrate-2026') return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const { pool } = require('../../config/database');
+    await pool.execute(`UPDATE tc_menus SET padre_id=37, orden=1 WHERE id=31`);
+    await pool.execute(`UPDATE tc_menus SET padre_id=37, orden=2 WHERE id=38`);
+    await pool.execute(`UPDATE tc_menus SET padre_id=37, orden=3 WHERE id=39`);
+    await pool.execute(`UPDATE tc_menus SET padre_id=37, orden=4 WHERE id=50`);
+    await pool.execute(`UPDATE tc_menus SET padre_id=NULL, orden=1 WHERE id=1`);
+    await pool.execute(`UPDATE tc_menus SET padre_id=NULL, orden=2 WHERE id=52`);
+    await pool.execute(`UPDATE tc_menus SET padre_id=NULL, orden=3 WHERE id=46`);
+    await pool.execute(`UPDATE tc_menus SET padre_id=NULL, orden=4 WHERE id=49`);
+    await pool.execute(`UPDATE tc_menus SET padre_id=NULL, orden=5 WHERE id=42`);
+    await pool.execute(`UPDATE tc_menus SET padre_id=NULL, orden=6 WHERE id=43`);
+    await pool.execute(`UPDATE tc_menus SET padre_id=NULL, orden=7 WHERE id=6`);
+    await pool.execute(`UPDATE tc_menus SET padre_id=NULL, orden=8 WHERE id=37`);
+    const [menus] = await pool.execute(`SELECT id, nombre, padre_id, orden FROM tc_menus ORDER BY orden`);
+    res.json({ ok: true, menus });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
