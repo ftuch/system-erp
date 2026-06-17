@@ -29,6 +29,17 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString(), version: '1.0.0' });
 });
 
+app.get('/api/setup-db', async (req, res) => {
+  if (req.query.token !== 'setup2024erp') return res.status(403).json({ error: 'forbidden' });
+  try {
+    const { execSync } = require('child_process');
+    execSync('node scripts/setup-db.js', { env: process.env, timeout: 30000 });
+    res.json({ ok: true, message: 'BD configurada correctamente' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.use(errorHandler);
 
 app.use((req, res) => {
